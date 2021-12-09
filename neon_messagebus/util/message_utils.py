@@ -124,7 +124,7 @@ def send_binary_file_message(filepath: str,
     """
     filepath = expanduser(filepath)
     if not isfile(filepath):
-        raise FileNotFoundError
+        raise FileNotFoundError(f"{filepath} is not a valid file")
 
     with open(filepath, 'rb') as f:
         binary_data = f.read()
@@ -133,7 +133,7 @@ def send_binary_file_message(filepath: str,
                              msg_context=msg_context, bus=bus)
 
 
-def decode_binary_message(message: Message) -> bytearray:
+def decode_binary_message(message: Union[Message, str, dict]) -> bytearray:
     """
     Decode a binary file message
     :param message: Message containing a binary file
@@ -143,7 +143,7 @@ def decode_binary_message(message: Message) -> bytearray:
         try:  # json string
             message = json.loads(message)
             binary_data = message.get("binary") or message["data"]["binary"]
-        except:  # hex string
+        except (json.JSONDecodeError, TypeError):  # hex string
             binary_data = message
     elif isinstance(message, dict):
         # data field or serialized message

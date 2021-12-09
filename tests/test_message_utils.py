@@ -22,10 +22,11 @@
 # LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE,  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+import json
 import os
 import sys
 import unittest
+from os.path import join, dirname, abspath
 from time import time
 from threading import Event
 
@@ -89,8 +90,78 @@ class TestMessageUtils(unittest.TestCase):
         received_event.wait()
         self.assertEqual(test_msg.serialize(), received.serialize())
         received_event.clear()
+        client_bus.close()
 
-# TODO: Test binary file methods DM
+    def test_send_binary_data_message(self):
+        from neon_messagebus.util.message_utils import get_messagebus, send_binary_data_message, decode_binary_message
+        received: Message = None
+        received_event = Event()
+        received_event.clear()
+
+        def message_handler(message):
+            nonlocal received
+            received = message
+            received_event.set()
+
+        client_bus = get_messagebus()
+        client_bus.on("unit_test_message", message_handler)
+
+        test_file = join(dirname(abspath(__file__)), "test_objects", "test_image.png")
+        with open(test_file, 'rb') as f:
+            byte_data = f.read()
+
+        context = {"test": "send Message Object"}
+        send_binary_data_message(byte_data, "unit_test_message", msg_context=context)
+        received_event.wait()
+        self.assertEqual(received.context, context)
+        self.assertEqual(received.data["binary"], byte_data.hex())
+        self.assertEqual(decode_binary_message(received), byte_data)
+
+    def test_send_binary_file_message(self):
+        from neon_messagebus.util.message_utils import get_messagebus, send_binary_file_message, decode_binary_message
+        received: Message = None
+        received_event = Event()
+        received_event.clear()
+
+        def message_handler(message):
+            nonlocal received
+            received = message
+            received_event.set()
+
+        client_bus = get_messagebus()
+        client_bus.on("unit_test_message", message_handler)
+
+        test_file = join(dirname(abspath(__file__)), "test_objects", "test_image.png")
+        with open(test_file, 'rb') as f:
+            byte_data = f.read()
+
+        context = {"test": "send Message Object"}
+        send_binary_file_message(test_file, "unit_test_message", msg_context=context)
+        received_event.wait()
+        self.assertEqual(received.context, context)
+        self.assertEqual(received.data["binary"], byte_data.hex())
+        self.assertEqual(decode_binary_message(received), byte_data)
+
+    def test_send_binary_file_method_invalid(self):
+        from neon_messagebus.util.message_utils import send_binary_file_message
+        test_file = join(dirname(abspath(__file__)), "test_objects")
+        with self.assertRaises(FileNotFoundError):
+            send_binary_file_message(test_file)
+        with self.assertRaises(FileNotFoundError):
+            send_binary_file_message('~')
+
+    def test_decode_binary_message(self):
+        from neon_messagebus.util.message_utils import decode_binary_message
+        test_file = join(dirname(abspath(__file__)), "test_objects", "test_image.png")
+        with open(test_file, 'rb') as f:
+            byte_data = f.read()
+        hex_data = byte_data.hex()
+        message = Message("tester", {"binary": hex_data}, {"context": "unit test"})
+        serialized_message = message.serialize()
+
+        self.assertEqual(decode_binary_message(hex_data), byte_data)
+        self.assertEqual(decode_binary_message(message), byte_data)
+        self.assertEqual(decode_binary_message(serialized_message), byte_data)
 
 
 if __name__ == '__main__':
