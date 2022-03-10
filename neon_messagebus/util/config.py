@@ -57,7 +57,7 @@ def load_message_bus_config(**kwargs) -> MessageBusConfig:
         port=kwargs.get('port') or websocket_config.get('port'),
         route=kwargs.get('route') or websocket_config.get('route'),
         ssl=kwargs.get('ssl') if 'ssl' in kwargs else
-        websocket_config.get('ssl')
+        websocket_config.get('ssl') or False
     )
     if not all([ws_config.host, ws_config.port, ws_config.route]):
         error_msg = 'Missing one or more websocket configs'
