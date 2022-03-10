@@ -57,8 +57,8 @@ class NeonBusService(Thread):
         self._init_tornado()
         self._listen()
         LOG.info('Message bus service started!')
-        self._started.set()
         ioloop.IOLoop.instance().start()
+        self._started.set()
 
     @staticmethod
     def _init_tornado():

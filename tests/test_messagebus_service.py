@@ -55,7 +55,7 @@ class TestMessagebusService(unittest.TestCase):
         service = NeonBusService(debug=True, daemonic=True)
         service.start()
         LOG.info("Waiting for service start")
-        service.started.wait(10)
+        self.assertTrue(service.started.wait(15))
         LOG.info("Service started")
         for i in range(32):
             client = MessageBusClient()
