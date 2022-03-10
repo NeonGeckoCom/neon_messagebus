@@ -56,7 +56,7 @@ def load_message_bus_config(**kwargs) -> MessageBusConfig:
         host=kwargs.get('host') or websocket_config.get('host'),
         port=kwargs.get('port') or websocket_config.get('port'),
         route=kwargs.get('route') or websocket_config.get('route'),
-        ssl=kwargs.get('ssl') if 'ssl' in kwargs else
+        ssl=kwargs.get('ssl') or False if 'ssl' in kwargs else
         websocket_config.get('ssl') or False
     )
     if not all([ws_config.host, ws_config.port, ws_config.route]):
