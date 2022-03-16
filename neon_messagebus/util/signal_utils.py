@@ -90,7 +90,8 @@ class SignalManager:
         self.bus = bus or MessageBusClient()
         self._handle_files = handle_files
         self._register_listeners()
-        self.bus.run_in_thread()
+        if not self.bus.started_running:
+            self.bus.run_in_thread()
         if not self.bus.connected_event.wait(60):
             LOG.error(f"Bus not connected after 60 seconds")
 

@@ -25,60 +25,20 @@
 # LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE,  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+from threading import Thread
 
-from neon_utils.logger import LOG
-from neon_utils.configuration_utils import init_config_dir
-from mycroft_bus_client.client import MessageBusClient
-
-from neon_messagebus.service import NeonBusService
-from neon_messagebus.util.signal_utils import SignalManager
-from neon_messagebus.util.mq_connector import start_mq_connector
-from neon_messagebus.util.config import load_message_bus_config
+from neon_utils.configuration_utils import get_neon_local_config
 
 
-from mycroft.lock import Lock  # creates/supports PID locking file
-from mycroft.util import wait_for_exit_signal, reset_sigint_handler
-
-
-def main():
-    init_config_dir()
-    reset_sigint_handler()
-    # Create PID file, prevent multiple instances of this service
-    lock = Lock("bus")
-    # TODO debug should be False by default
-    service = NeonBusService(debug=True, daemonic=True)
-    service.start()
-    messagebus_config = load_message_bus_config()
-    config_dict = messagebus_config._asdict()
-    config_dict['host'] = "0.0.0.0"
-    client = MessageBusClient(**config_dict)
-    if not service.started.wait(10):
-        LOG.warning("Timeout waiting for service start")
-    SignalManager(client)
-    LOG.debug("Signal Manager Initialized")
-
-    # TODO: Make MQ Connection optional
-    connector = None
-    try:
-        connector = start_mq_connector(config_dict)
-        LOG.debug("MQ Connection Established")
-    except ImportError:
-        LOG.debug("MQ Connector module not available")
-    except Exception as e:
-        LOG.exception(e)
-
-    wait_for_exit_signal()
-    service.shutdown()
-
-    if connector:
-        from pika.exceptions import StreamLostError
-        try:
-            connector.stop()
-        except StreamLostError:
-            pass
-    lock.delete()
-    LOG.info("Messagebus service stopped")
-
-
-if __name__ == "__main__":
-    main()
+def start_mq_connector(bus_config: dict):
+    """
+    Start the MQ Connector module to handle MQ API requests
+    """
+    from chat_api_mq_proxy import ChatAPIProxy
+    mq_creds = get_neon_local_config()["MQ"]
+    bus_config = bus_config
+    chat_connector = ChatAPIProxy(service_name="neon_chat_api",
+                                  config={"MQ": mq_creds,
+                                          "MESSAGEBUS": bus_config})
+    chat_connector.run(run_sync=False)
+    return chat_connector
