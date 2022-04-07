@@ -57,11 +57,13 @@ def main():
     SignalManager(client)
     LOG.debug("Signal Manager Initialized")
 
-    # TODO: Make MQ Connection optional
     connector = None
     try:
         connector = start_mq_connector(config_dict)
-        LOG.debug("MQ Connection Established")
+        if connector:
+            LOG.debug("MQ Connection Established")
+        else:
+            LOG.debug("No MQ Credentials provided")
     except ImportError:
         LOG.debug("MQ Connector module not available")
     except Exception as e:

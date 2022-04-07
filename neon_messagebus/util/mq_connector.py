@@ -25,7 +25,6 @@
 # LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE,  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-from threading import Thread
 
 from neon_utils.configuration_utils import get_neon_local_config
 
@@ -34,8 +33,10 @@ def start_mq_connector(bus_config: dict):
     """
     Start the MQ Connector module to handle MQ API requests
     """
-    from chat_api_mq_proxy import ChatAPIProxy
+    from neon_messagebus_mq_connector import ChatAPIProxy
     mq_creds = get_neon_local_config()["MQ"]
+    if "neon_chat_api" not in mq_creds.get("users", {}):
+        return None
     bus_config = bus_config
     chat_connector = ChatAPIProxy(service_name="neon_chat_api",
                                   config={"MQ": mq_creds,
