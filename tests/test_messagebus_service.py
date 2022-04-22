@@ -79,6 +79,16 @@ class TestMessagebusService(unittest.TestCase):
         service.shutdown()
         self.assertFalse(service.started.is_set())
 
+    def test_service_shutdown(self):
+        service = NeonBusService(daemonic=False)
+        service.start()
+        self.assertTrue(service.is_alive())
+        service.join(1)
+        self.assertTrue(service.is_alive())
+        service.shutdown()
+        self.assertFalse(service.is_alive())
+        service.join()
+
 
 if __name__ == '__main__':
     unittest.main()

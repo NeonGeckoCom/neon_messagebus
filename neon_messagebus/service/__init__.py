@@ -28,6 +28,8 @@
 
 import asyncio
 import sys
+from time import sleep
+
 import tornado.options
 
 from os.path import expanduser, isfile
@@ -105,4 +107,7 @@ class NeonBusService(Thread):
         loop.add_callback(loop.stop)
         loop.close()
         self._loop.call_soon_threadsafe(self._loop.stop)
+        while self._loop.is_running():
+            LOG.debug("Waiting for loop to stop...")
+            sleep(1)
         self._loop.close()
