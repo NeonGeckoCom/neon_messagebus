@@ -42,31 +42,38 @@ from mycroft.messagebus.service.event_handler import MessageBusEventHandler
 
 class NeonBusService(Thread):
     def __init__(self, config=None, debug=False, daemonic=False):
+        self._started = Event()
         super().__init__()
         self.config = config or load_message_bus_config()
         self.debug = debug
         self.setDaemon(daemonic)
-        self._started = Event()
+        self._stopping = Event()
+
         self._app = None
+        self._loop = None
 
     @property
     def started(self) -> Event:
         return self._started
 
     def run(self):
+        self._stopping.clear()
+
         LOG.info('Starting message bus service...')
         self._init_tornado()
         self._listen()
         LOG.info('Message bus service started!')
         ioloop.IOLoop.instance().start()
-        self._started.set()
+        # self._stopping.wait()
+        # _loop.stop()
+        # self._started.set()
 
-    @staticmethod
-    def _init_tornado():
+    def _init_tornado(self):
         # Disable all tornado logging so mycroft loglevel isn't overridden
         tornado.options.parse_command_line(sys.argv + ['--logging=None'])
         # get event loop for this thread
-        asyncio.set_event_loop(asyncio.new_event_loop())
+        self._loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self._loop)
 
     def _listen(self):
         routes = [(self.config.route, MessageBusEventHandler)]
@@ -94,4 +101,8 @@ class NeonBusService(Thread):
     def shutdown(self):
         LOG.info("Messagebus Server shutting down.")
         self._app.stop()
-        self._started.clear()
+        loop = ioloop.IOLoop.instance()
+        loop.add_callback(loop.stop)
+        loop.close()
+        self._loop.call_soon_threadsafe(self._loop.stop)
+        self._loop.close()
