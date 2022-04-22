@@ -47,6 +47,7 @@ class NeonBusService(Thread):
         self.debug = debug
         self.setDaemon(daemonic)
         self._started = Event()
+        self._app = None
 
     @property
     def started(self) -> Event:
@@ -84,13 +85,13 @@ class NeonBusService(Thread):
                 ssl_options = {"certfile": cert, "keyfile": key}
         if ssl_options:
             LOG.info("wss listener started")
-            application.listen(self.config.port, self.config.host,
-                               ssl_options=ssl_options)
+            self._app = application.listen(self.config.port, self.config.host,
+                                           ssl_options=ssl_options)
         else:
             LOG.info("ws listener started")
-            application.listen(self.config.port, self.config.host)
+            self._app = application.listen(self.config.port, self.config.host)
 
     def shutdown(self):
         LOG.info("Messagebus Server shutting down.")
+        self._app.stop()
         self._started.clear()
-        # TODO
