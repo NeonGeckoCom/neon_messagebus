@@ -76,8 +76,10 @@ class TestMessagebusService(unittest.TestCase):
         self.assertEqual(len(clients), called_count)
 
         self.assertTrue(service.started.is_set())
+        self.assertTrue(service.is_alive())
         service.shutdown()
-        self.assertFalse(service.started.is_set())
+        service.join()
+        self.assertFalse(service.is_alive())
 
     def test_service_shutdown(self):
         service = NeonBusService(daemonic=False)
