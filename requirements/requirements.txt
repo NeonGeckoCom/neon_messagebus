@@ -1,5 +1,6 @@
 mycroft-messagebus-client~=0.9,>0.9.3
-neon-utils~=0.16
+# neon-utils~=0.16
+neon-utils @ git+https://github.com/neondaniel/neon-skill-utils@FEAT_MycroftConfigCompat
 neon-messagebus-mq-connector~=0.2
-ovos-core~=0.0.3
+ovos-core~=0.0.3,>=0.0.4a29
 tornado~=6.0,>=6.0.3
