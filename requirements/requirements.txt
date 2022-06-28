@@ -2,7 +2,7 @@ mycroft-messagebus-client~=0.9,>0.9.3
 # neon-utils~=0.16
 neon-utils @ git+https://github.com/neondaniel/neon-skill-utils@FEAT_MycroftConfigCompat
 neon-messagebus-mq-connector~=0.2
-ovos-core[skills]~=0.0.3,>=0.0.4a29
-# TODO: skills extra to resolve ovos_workshop dependency error
+ovos-core[skills]>=0.0.4a30
 ovos_utils @ git+https://github.com/neondaniel/ovos_utils@FEAT_YamlConfig
 tornado~=6.0,>=6.0.3
+ovos-config~=0.0
