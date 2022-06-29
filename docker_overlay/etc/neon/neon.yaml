@@ -17,3 +17,9 @@ websocket:
   ssl_cert:
   ssl_key:
   shared_connection: true
+system:
+  protected_keys:
+    remote:
+      - websocket
+    user:
+      - websocket
