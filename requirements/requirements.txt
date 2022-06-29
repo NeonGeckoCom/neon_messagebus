@@ -2,7 +2,9 @@ mycroft-messagebus-client~=0.9,>0.9.3
 # neon-utils~=0.16
 neon-utils @ git+https://github.com/neondaniel/neon-skill-utils@FEAT_MycroftConfigCompat
 neon-messagebus-mq-connector~=0.2
-ovos-core[skills]>=0.0.4a30
+# ovos-core[skills]>=0.0.4a30
+ovos-core[skills] @ git+https://github.com/neonjarbas/ovos-core@refactor/ovos_config_pkg#egg=ovos-core
 ovos_utils @ git+https://github.com/neondaniel/ovos_utils@FEAT_YamlConfig
 tornado~=6.0,>=6.0.3
-ovos-config~=0.0
+# ovos-config~=0.0
+ovos-config @ git+https://github.com/openvoiceos/ovos-config@FIX_ConfigConstraints

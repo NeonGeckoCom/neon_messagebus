@@ -20,6 +20,6 @@ websocket:
 system:
   protected_keys:
     remote:
-      - websocket
+      - websocket:host
     user:
-      - websocket
+      - websocket:host
