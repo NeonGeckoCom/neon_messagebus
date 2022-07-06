@@ -31,7 +31,7 @@ from time import time
 from typing import Optional, Dict
 from mycroft_bus_client import MessageBusClient, Message
 from neon_utils.logger import LOG
-from ovos_utils.configuration import read_mycroft_config
+from ovos_config.config import Configuration
 from ovos_utils.signal import create_signal, check_for_signal
 
 
@@ -86,7 +86,7 @@ class Signal:
 class SignalManager:
     def __init__(self, bus: MessageBusClient = None,
                  handle_files: bool = True):
-        self._signal_config = read_mycroft_config()
+        self._signal_config = dict(Configuration())
         self._signals: Dict[str, Signal] = dict()
         self.bus = bus or MessageBusClient()
         self._handle_files = handle_files

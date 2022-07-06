@@ -29,7 +29,7 @@
 from collections import namedtuple
 from neon_utils.logger import LOG
 
-from ovos_config import Configuration
+from ovos_config.config import Configuration
 
 MessageBusConfig = namedtuple(
     'MessageBusConfig',

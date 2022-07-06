@@ -17,8 +17,6 @@ RUN apt-get update && \
 ADD . /neon_messagebus
 WORKDIR /neon_messagebus
 
-RUN apt-get install -y git
-
 RUN pip install wheel \
     && pip install .
 
