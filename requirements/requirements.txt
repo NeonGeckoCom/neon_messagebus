@@ -1,5 +1,5 @@
 mycroft-messagebus-client~=0.9,>0.9.3
-neon-utils[network]~=1.0,>=1.0.3a2
+neon-utils[network]~=1.0,>=1.0.3a6
 neon-messagebus-mq-connector==0.3.2
 # TODO: Loosen above spec when package deps are all stable versions
 ovos-core~=0.0.4
