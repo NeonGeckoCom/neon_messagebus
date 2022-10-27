@@ -26,8 +26,9 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE,  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from neon_utils.logger import LOG
+from ovos_utils.log import LOG
 from neon_utils.configuration_utils import init_config_dir
+from neon_utils.log_utils import init_log
 from mycroft_bus_client.client import MessageBusClient
 
 from neon_messagebus.service import NeonBusService
@@ -40,13 +41,14 @@ from mycroft.lock import Lock  # creates/supports PID locking file
 from mycroft.util import wait_for_exit_signal, reset_sigint_handler
 
 
-def main():
+def main(**kwargs):
     init_config_dir()
+    init_log(log_name="bus")
     reset_sigint_handler()
     # Create PID file, prevent multiple instances of this service
     lock = Lock("bus")
     # TODO debug should be False by default
-    service = NeonBusService(debug=True, daemonic=True)
+    service = NeonBusService(debug=True, daemonic=True, **kwargs)
     service.start()
     messagebus_config = load_message_bus_config()
     config_dict = messagebus_config._asdict()
@@ -70,6 +72,7 @@ def main():
         LOG.error("Connector not started")
         LOG.exception(e)
 
+    service._ready_hook()
     wait_for_exit_signal()
     service.shutdown()
 
