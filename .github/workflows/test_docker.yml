@@ -10,4 +10,4 @@ jobs:
     uses: neongeckocom/.github/.github/workflows/publish_docker.yml@FIX_DockerNullTagChecks
     secrets: inherit
     with:
-      image_name: test_bus_automation
+      image_name: neongeckocom/test_bus_automation
