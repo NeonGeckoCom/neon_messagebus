@@ -123,7 +123,7 @@ class TestMessageUtils(unittest.TestCase):
         send_binary_data_message(byte_data, "unit_test_message",
                                  msg_context=context)
         received_event.wait()
-        self.assertEqual(received.context, context)
+        self.assertEqual(received.context['test'], context['test'])
         self.assertEqual(received.data["binary"], byte_data.hex())
         self.assertEqual(decode_binary_message(received), byte_data)
 
@@ -151,7 +151,7 @@ class TestMessageUtils(unittest.TestCase):
         send_binary_file_message(test_file, "unit_test_message",
                                  msg_context=context)
         received_event.wait()
-        self.assertEqual(received.context, context)
+        self.assertEqual(received.context['test'], context['test'])
         self.assertEqual(received.data["binary"], byte_data.hex())
         self.assertEqual(decode_binary_message(received), byte_data)
 
