@@ -28,18 +28,15 @@
 
 import asyncio
 import sys
-from time import sleep
-
 import tornado.options
 
+from time import sleep
 from os.path import expanduser, isfile
 from threading import Thread, Event
 from tornado import web, ioloop
-from neon_utils import LOG
-
+from ovos_utils.log import LOG
+from ovos_messagebus.event_handler import MessageBusEventHandler
 from neon_messagebus.util.config import load_message_bus_config
-
-from mycroft.messagebus.service.event_handler import MessageBusEventHandler
 
 
 def on_ready():
@@ -72,7 +69,7 @@ class NeonBusService(Thread):
         super().__init__()
         self.config = config or load_message_bus_config()
         self.debug = debug
-        self.setDaemon(daemonic)
+        self.daemon = daemonic
         self._stopping = Event()
 
         self._started_hook = started_hook
