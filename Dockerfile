@@ -3,7 +3,8 @@ FROM python:3.8-slim
 LABEL vendor=neon.ai \
     ai.neon.name="neon-messagebus"
 
-ENV NEON_CONFIG_PATH /config
+ENV OVOS_CONFIG_BASE_FOLDER neon
+ENV OVOS_CONFIG_FILENAME neon.yaml
 
 EXPOSE 8181
 
