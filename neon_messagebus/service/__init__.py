@@ -33,10 +33,16 @@ import tornado.options
 from time import sleep
 from os.path import expanduser, isfile
 from threading import Thread, Event
+
+from ovos_bus_client import MessageBusClient
 from tornado import web, ioloop
 from ovos_utils.log import LOG
+from ovos_config.config import Configuration
 from ovos_messagebus.event_handler import MessageBusEventHandler
-from neon_messagebus.util.config import load_message_bus_config
+from ovos_messagebus.load_config import load_message_bus_config
+
+from neon_messagebus.util.mq_connector import start_mq_connector
+from neon_messagebus.util.signal_utils import SignalManager
 
 
 def on_ready():
@@ -67,7 +73,7 @@ class NeonBusService(Thread):
         alive_hook()
         self._started = Event()
         super().__init__()
-        self.config = config or load_message_bus_config()
+        self.config = config or Configuration()
         self.debug = debug
         self.daemon = daemonic
         self._stopping = Event()
@@ -79,6 +85,9 @@ class NeonBusService(Thread):
 
         self._app = None
         self._loop = None
+        self._loop_thread = None
+        self._signal_manager = None
+        self._mq_connector = None
 
     @property
     def started(self) -> Event:
@@ -91,11 +100,37 @@ class NeonBusService(Thread):
         LOG.info('Starting message bus service...')
         self._init_tornado()
         self._listen()
+        self._loop_thread = Thread(target=ioloop.IOLoop.instance().start)
+        self._loop_thread.start()
+
+        self._init_signal_manager()
+
+        self._started.set()
         LOG.info('Message bus service started!')
-        ioloop.IOLoop.instance().start()
-        # self._stopping.wait()
-        # _loop.stop()
-        # self._started.set()
+        self._ready_hook()
+
+    def _init_signal_manager(self):
+        config_dict = {k: v for k, v in self.config.get("websocket", {}).items()
+                       if k in ("host", "port", "route", "ssl")}
+        config_dict['host'] = "0.0.0.0"
+        client = MessageBusClient(**config_dict)
+        self._signal_manager = SignalManager(client)
+
+    def _init_mq_connector(self):
+        if not self.config.get("MQ"):
+            LOG.debug("No MQ Configuration")
+            return
+        try:
+            self._mq_connector = start_mq_connector(self.config)
+            if self._mq_connector:
+                LOG.info("MQ Connection Established")
+            else:
+                LOG.info("No MQ Credentials provided")
+        except ImportError as e:
+            LOG.warning(f"MQ Connector module not available: {e}")
+        except Exception as e:
+            LOG.error("Connector not started")
+            LOG.exception(e)
 
     def _init_tornado(self):
         # Disable all tornado logging so mycroft loglevel isn't overridden
@@ -105,13 +140,14 @@ class NeonBusService(Thread):
         asyncio.set_event_loop(self._loop)
 
     def _listen(self):
-        routes = [(self.config.route, MessageBusEventHandler)]
+        config = load_message_bus_config(**self.config.get('websocket', {}))
+        routes = [(config.route, MessageBusEventHandler)]
         application = web.Application(routes, debug=self.debug)
         ssl_options = None
-        LOG.info(f"Starting Messagebus server with config: {self.config}")
-        if self.config.ssl:
-            cert = expanduser(self.config.ssl_cert)
-            key = expanduser(self.config.ssl_key)
+        LOG.info(f"Starting Messagebus server with config: {config}")
+        if config.ssl:
+            cert = expanduser(config.ssl_cert)
+            key = expanduser(config.ssl_key)
             if not isfile(key) or not isfile(cert):
                 LOG.error(
                     "ssl keys dont exist, falling back to unsecured socket")
@@ -121,11 +157,11 @@ class NeonBusService(Thread):
                 ssl_options = {"certfile": cert, "keyfile": key}
         if ssl_options:
             LOG.info("wss listener started")
-            self._app = application.listen(self.config.port, self.config.host,
+            self._app = application.listen(config.port, config.host,
                                            ssl_options=ssl_options)
         else:
             LOG.info("ws listener started")
-            self._app = application.listen(self.config.port, self.config.host)
+            self._app = application.listen(config.port, config.host)
 
     def shutdown(self):
         LOG.info("Messagebus Server shutting down.")
@@ -140,4 +176,13 @@ class NeonBusService(Thread):
             LOG.debug("Waiting for loop to stop...")
             sleep(1)
         self._loop.close()
+        self._loop_thread.join()
+
+        if self._mq_connector:
+            from pika.exceptions import StreamLostError
+            try:
+                self._mq_connector.stop()
+            except StreamLostError:
+                pass
+
         LOG.info("Messagebus service stopped")
