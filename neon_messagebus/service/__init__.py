@@ -104,6 +104,7 @@ class NeonBusService(Thread):
         self._loop_thread.start()
 
         self._init_signal_manager()
+        self._init_mq_connector()
 
         self._started.set()
         LOG.info('Message bus service started!')
@@ -115,10 +116,11 @@ class NeonBusService(Thread):
         config_dict['host'] = "0.0.0.0"
         client = MessageBusClient(**config_dict)
         self._signal_manager = SignalManager(client)
+        LOG.info("Signal Manager started")
 
     def _init_mq_connector(self):
         if not self.config.get("MQ"):
-            LOG.debug("No MQ Configuration")
+            LOG.info("No MQ Configuration")
             return
         try:
             self._mq_connector = start_mq_connector(self.config)

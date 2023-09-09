@@ -48,6 +48,7 @@ def main(**kwargs):
 
     service = NeonBusService(daemonic=True, **kwargs)
     service.start()
+    LOG.debug("Waiting for exit signal")
     wait_for_exit_signal()
 
     if malloc_running:
