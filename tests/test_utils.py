@@ -180,13 +180,9 @@ class TestMessageUtils(unittest.TestCase):
 
 
 class TestSignalUtils(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        from neon_messagebus.util.signal_utils import SignalManager
-        cls.service = NeonBusService(debug=True, daemonic=True)
-        cls.service.start()
-        cls.service.started.wait()
-        cls.signal_manager = SignalManager()
+    service = NeonBusService(debug=True, daemonic=True)
+    service.run()
+    signal_manager = service._signal_manager
 
     @classmethod
     def tearDownClass(cls) -> None:

@@ -71,7 +71,7 @@ class NeonBusService(Thread):
                  started_hook=on_started,
                  config=None, debug=False, daemonic=False):
         alive_hook()
-        self._started = Event()
+        self._running = Event()
         super().__init__()
         self.config = config or Configuration()
         self.debug = debug
@@ -91,7 +91,7 @@ class NeonBusService(Thread):
 
     @property
     def started(self) -> Event:
-        return self._started
+        return self._running
 
     def run(self):
         self._started_hook()
@@ -106,7 +106,7 @@ class NeonBusService(Thread):
         self._init_signal_manager()
         self._init_mq_connector()
 
-        self._started.set()
+        self._running.set()
         LOG.info('Message bus service started!')
         self._ready_hook()
 
@@ -125,7 +125,9 @@ class NeonBusService(Thread):
         try:
             self._mq_connector = start_mq_connector(self.config)
             if self._mq_connector:
-                LOG.info("MQ Connection Established")
+                LOG.info(f"MQ Connection Established to "
+                         f"{self._mq_connector.config.get('host')}:"
+                         f"{self._mq_connector.config.get('port')}")
             else:
                 LOG.info("No MQ Credentials provided")
         except ImportError as e:
@@ -173,7 +175,10 @@ class NeonBusService(Thread):
         loop.add_callback(loop.stop)
         sleep(1)
         loop.close()
-        self._loop.call_soon_threadsafe(self._loop.stop)
+        try:
+            self._loop.call_soon_threadsafe(self._loop.stop)
+        except RuntimeError as e:
+            LOG.debug(e)
         while self._loop.is_running():
             LOG.debug("Waiting for loop to stop...")
             sleep(1)
