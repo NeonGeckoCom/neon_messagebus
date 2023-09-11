@@ -106,9 +106,10 @@ class NeonBusService(Thread):
         self._init_signal_manager()
         self._init_mq_connector()
 
+        self._ready_hook()
         self._running.set()
         LOG.info('Message bus service started!')
-        self._ready_hook()
+        self._stopping.wait()
 
     def _init_signal_manager(self):
         config_dict = {k: v for k, v in self.config.get("websocket", {}).items()
@@ -192,4 +193,5 @@ class NeonBusService(Thread):
             except StreamLostError:
                 pass
 
+        self._stopping.set()
         LOG.info("Messagebus service stopped")
