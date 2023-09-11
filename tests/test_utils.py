@@ -36,6 +36,7 @@ from threading import Event, Thread
 
 import mock
 from ovos_bus_client import MessageBusClient, Message
+from ovos_utils.messagebus import FakeBus
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from neon_messagebus.service import NeonBusService
@@ -180,16 +181,17 @@ class TestMessageUtils(unittest.TestCase):
 
 
 class TestSignalUtils(unittest.TestCase):
-    service = NeonBusService(debug=True, daemonic=True)
-    service.run()
-    signal_manager = service._signal_manager
+    from neon_messagebus.util.signal_utils import SignalManager
+    from neon_utils.signal_utils import init_signal_bus
 
-    @classmethod
-    def tearDownClass(cls) -> None:
-        cls.service.shutdown()
+    bus = FakeBus()
+    bus.connected_event = Event()
+    bus.connected_event.set()
+    signal_manager = SignalManager(bus)
+    init_signal_bus(bus)
 
     def test_00_init_signal_handlers(self):
-        from neon_utils.signal_utils import init_signal_handlers
+        from neon_utils.signal_utils import init_signal_handlers, init_signal_bus
         init_signal_handlers()
         from neon_utils.signal_utils import _manager_create_signal, \
             _create_signal
