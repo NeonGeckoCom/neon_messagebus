@@ -35,6 +35,7 @@ from os.path import expanduser, isfile
 from threading import Thread, Event
 
 from ovos_bus_client import MessageBusClient
+from ovos_utils.process_utils import StatusCallbackMap, ProcessStatus
 from tornado import web, ioloop
 from ovos_utils.log import LOG
 from ovos_config.config import Configuration
@@ -70,18 +71,21 @@ class NeonBusService(Thread):
                  stopping_hook=on_stopping, alive_hook=on_alive,
                  started_hook=on_started,
                  config=None, debug=False, daemonic=False):
-        alive_hook()
-        self._running = Event()
         super().__init__()
+        callbacks = StatusCallbackMap(on_ready=ready_hook,
+                                      on_error=error_hook,
+                                      on_stopping=stopping_hook,
+                                      on_alive=alive_hook,
+                                      on_started=started_hook)
+        self.service_id = "bus"
+        self.status = ProcessStatus(self.service_id, callback_map=callbacks)
+        self.status.set_alive()
+
         self.config = config or Configuration()
         self.debug = debug
         self.daemon = daemonic
         self._stopping = Event()
-
-        self._started_hook = started_hook
-        self._ready_hook = ready_hook
-        self._stopping_hook = stopping_hook
-        self._error_hook = error_hook
+        self._running = Event()
 
         self._app = None
         self._loop = None
@@ -94,7 +98,7 @@ class NeonBusService(Thread):
         return self._running
 
     def run(self):
-        self._started_hook()
+        self.status.set_started()
         self._stopping.clear()
 
         LOG.info('Starting message bus service...')
@@ -106,7 +110,7 @@ class NeonBusService(Thread):
         self._init_signal_manager()
         self._init_mq_connector()
 
-        self._ready_hook()
+        self.status.set_ready()
         self._running.set()
         LOG.info('Message bus service started!')
         self._stopping.wait()
@@ -170,7 +174,7 @@ class NeonBusService(Thread):
 
     def shutdown(self):
         LOG.info("Messagebus Server shutting down.")
-        self._stopping_hook()
+        self.status.set_stopping()
         self._app.stop()
         loop = ioloop.IOLoop.instance()
         loop.add_callback(loop.stop)
