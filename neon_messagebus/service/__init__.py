@@ -131,7 +131,7 @@ class NeonBusService(Thread):
             self._mq_connector = start_mq_connector(self.config)
             if self._mq_connector:
                 LOG.info(f"MQ Connection Established to "
-                         f"{self._mq_connector.config.get('host')}:"
+                         f"{self._mq_connector.config.get('server')}:"
                          f"{self._mq_connector.config.get('port')}")
             else:
                 LOG.info("No MQ Credentials provided")
