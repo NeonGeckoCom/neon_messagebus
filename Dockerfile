@@ -5,6 +5,7 @@ LABEL vendor=neon.ai \
 
 ENV OVOS_CONFIG_BASE_FOLDER neon
 ENV OVOS_CONFIG_FILENAME neon.yaml
+ENV XDG_CONFIG_HOME /config
 
 EXPOSE 8181
 
@@ -19,7 +20,7 @@ ADD . /neon_messagebus
 WORKDIR /neon_messagebus
 
 RUN pip install wheel \
-    && pip install .
+    && pip install .[docker]
 
 COPY docker_overlay/ /
 
