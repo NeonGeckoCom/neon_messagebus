@@ -39,9 +39,9 @@ from ovos_utils.process_utils import StatusCallbackMap, ProcessStatus
 from tornado import web, ioloop
 from ovos_utils.log import LOG
 from ovos_config.config import Configuration
-from ovos_messagebus.event_handler import MessageBusEventHandler
 from ovos_messagebus.load_config import load_message_bus_config
 
+from neon_messagebus.event_handler import NeonMessageBusEventHandler
 from neon_messagebus.util.mq_connector import start_mq_connector
 from neon_messagebus.util.signal_utils import SignalManager
 
@@ -170,7 +170,7 @@ class NeonBusService(Thread):
 
     def _listen(self):
         config = load_message_bus_config(**self.config.get('websocket', {}))
-        routes = [(config.route, MessageBusEventHandler)]
+        routes = [(config.route, NeonMessageBusEventHandler)]
         application = web.Application(routes, debug=self.debug)
         ssl_options = None
         LOG.info(f"Starting Messagebus server with config: {config}")
