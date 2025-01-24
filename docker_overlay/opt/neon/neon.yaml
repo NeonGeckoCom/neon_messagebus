@@ -10,6 +10,7 @@ websocket:
   ssl_cert:
   ssl_key:
   shared_connection: true
+log_level: INFO
 logs:
   level_overrides:
     warning:
