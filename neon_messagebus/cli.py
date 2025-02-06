@@ -28,9 +28,12 @@
 
 import click
 
+from os import environ
 from click_default_group import DefaultGroup
 from neon_utils.packaging_utils import get_package_version_spec
-from neon_utils.configuration_utils import init_config_dir
+
+environ.setdefault("OVOS_CONFIG_BASE_FOLDER", "neon")
+environ.setdefault("OVOS_CONFIG_FILENAME", "neon.yaml")
 
 
 @click.group("neon-messagebus", cls=DefaultGroup,
@@ -47,7 +50,6 @@ def neon_messagebus_cli(version: bool = False):
 
 @neon_messagebus_cli.command(help="Start Neon Messagebus module")
 def run():
-    init_config_dir()
     from neon_messagebus.service.__main__ import main
     click.echo("Starting Messagebus Service")
     main()
