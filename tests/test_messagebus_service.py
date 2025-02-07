@@ -131,12 +131,10 @@ class TestMessagebusService(unittest.TestCase):
 class TestCLI(unittest.TestCase):
     runner = CliRunner()
 
-    @patch("neon_messagebus.cli.init_config_dir")
     @patch("neon_messagebus.service.__main__.main")
-    def test_run(self, main, init_config):
+    def test_run(self, main):
         from neon_messagebus.cli import run
         self.runner.invoke(run)
-        init_config.assert_called_once()
         main.assert_called_once()
 
 
