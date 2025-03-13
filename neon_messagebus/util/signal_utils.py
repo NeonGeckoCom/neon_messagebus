@@ -89,7 +89,7 @@ class Signal:
 
 class SignalManager:
     def __init__(self, bus: MessageBusClient = None,
-                 handle_files: bool = True):
+                 handle_files: bool = False):
         self._signal_config = dict(Configuration())
         self._signals: Dict[str, Signal] = dict()
         self.bus = bus or MessageBusClient()
