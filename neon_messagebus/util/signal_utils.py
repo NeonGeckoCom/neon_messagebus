@@ -33,6 +33,11 @@ from ovos_bus_client import MessageBusClient, Message
 from ovos_utils.log import LOG
 from ovos_config.config import Configuration
 
+try:
+    from ovos_utils.signal import create_signal, check_for_signal
+except ImportError:
+    create_signal = check_for_signal = None
+
 
 class Signal:
     def __init__(self):
@@ -89,6 +94,9 @@ class SignalManager:
         self._signals: Dict[str, Signal] = dict()
         self.bus = bus or MessageBusClient()
         self._handle_files = handle_files
+        if self._handle_files and not create_signal:
+            LOG.error("Signal files were requested but are no longer supported")
+            self._handle_files = False
         self._register_listeners()
         if not self.bus.started_running:
             self.bus.run_in_thread()
@@ -101,11 +109,7 @@ class SignalManager:
         """
         self._ensure_signal_is_defined(signal)
         if self._handle_files:
-            try:
-                from ovos_utils.signal import create_signal
-                create_signal(signal, config=self._signal_config)
-            except ImportError:
-                LOG.warning("Signal files are no longer supported")
+            create_signal(signal, config=self._signal_config)
         self._signals[signal].create()
         return True
 
@@ -119,11 +123,7 @@ class SignalManager:
         if sec_lifetime == 0:
             # Clear the signal and return
             if self._handle_files:
-                try:
-                    from ovos_utils.signal import check_for_signal
-                    check_for_signal(signal, config=self._signal_config)
-                except ImportError:
-                    LOG.warning("Signal files are no longer supported")
+                check_for_signal(signal, config=self._signal_config)
             self._signals[signal].clear()
             return True
         if sec_lifetime == -1:
@@ -133,11 +133,7 @@ class SignalManager:
             # Signal is expired and must be cleared
             LOG.debug(f"Clearing expired signal: {signal}")
             if self._handle_files:
-                try:
-                    from ovos_utils.signal import check_for_signal
-                    check_for_signal(signal, config=self._signal_config)
-                except ImportError:
-                    LOG.warning("Signal files are no longer supported")
+                check_for_signal(signal, config=self._signal_config)
             self._signals[signal].clear()
             return False
         # Signal exists and is not yet expired

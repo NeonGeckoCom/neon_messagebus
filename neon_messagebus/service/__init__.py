@@ -141,7 +141,7 @@ class NeonBusService(Thread):
 
     def _init_signal_manager(self):
         handle_signals = self.config.get("signal",
-                                         {}).get("use_signal_files", True)
+                                         {}).get("use_signal_files", False)
         self._signal_manager = SignalManager(self._bus, handle_signals)
         LOG.info("Signal Manager started")
 
