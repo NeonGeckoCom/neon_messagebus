@@ -9,18 +9,20 @@ jobs:
   py_build_tests:
     uses: neongeckocom/.github/.github/workflows/python_build_tests.yml@master
     with:
-      python_version: "3.8"
+      python_version: "3.10"
   docker_build_tests:
     uses: neongeckocom/.github/.github/workflows/docker_build_tests.yml@master
+    with:
+      platforms: linux/amd64,linux/arm64
   unit_tests:
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9, '3.10']
+        python-version: [3.9, '3.10', '3.11', '3.12']
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Set up python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
@@ -34,16 +36,16 @@ jobs:
         run: |
           pytest tests/test_utils.py --doctest-modules --junitxml=tests/util-test-results.xml
       - name: Upload Util test results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: util-test-results
+          name: util-test-results-${{ matrix.python-version }}
           path: tests/util-test-results.xml
 
       - name: Test Service
         run: |
           pytest tests/test_messagebus_service.py --doctest-modules --junitxml=tests/messagebus-service-test-results.xml
       - name: Upload Messagebus service test results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: messagebus-service-test-results
+          name: messagebus-service-test-results-${{ matrix.python-version }}
           path: tests/messagebus-service-test-results.xml

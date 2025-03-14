@@ -1,1 +1,2 @@
 neon-mana-utils~=0.2
+neon-utils[sentry]~=1.12

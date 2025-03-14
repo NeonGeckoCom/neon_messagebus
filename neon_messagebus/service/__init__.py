@@ -1,6 +1,6 @@
 # NEON AI (TM) SOFTWARE, Software Development Kit & Application Framework
 # All trademark and other rights reserved by their respective owners
-# Copyright 2008-2022 Neongecko.com Inc.
+# Copyright 2008-2025 Neongecko.com Inc.
 # Contributors: Daniel McKnight, Guy Daniels, Elon Gasper, Richard Leeds,
 # Regina Bloomstine, Casimiro Ferreira, Andrii Pernatii, Kirill Hrymailo
 # BSD-3 License
@@ -140,7 +140,9 @@ class NeonBusService(Thread):
                                          }))
 
     def _init_signal_manager(self):
-        self._signal_manager = SignalManager(self._bus)
+        handle_signals = self.config.get("signal",
+                                         {}).get("use_signal_files", False)
+        self._signal_manager = SignalManager(self._bus, handle_signals)
         LOG.info("Signal Manager started")
 
     def _init_mq_connector(self):

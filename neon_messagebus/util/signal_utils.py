@@ -1,6 +1,6 @@
 # NEON AI (TM) SOFTWARE, Software Development Kit & Application Framework
 # All trademark and other rights reserved by their respective owners
-# Copyright 2008-2022 Neongecko.com Inc.
+# Copyright 2008-2025 Neongecko.com Inc.
 # Contributors: Daniel McKnight, Guy Daniels, Elon Gasper, Richard Leeds,
 # Regina Bloomstine, Casimiro Ferreira, Andrii Pernatii, Kirill Hrymailo
 # BSD-3 License
@@ -32,7 +32,11 @@ from typing import Optional, Dict
 from ovos_bus_client import MessageBusClient, Message
 from ovos_utils.log import LOG
 from ovos_config.config import Configuration
-from ovos_utils.signal import create_signal, check_for_signal
+
+try:
+    from ovos_utils.signal import create_signal, check_for_signal
+except ImportError:
+    create_signal = check_for_signal = None
 
 
 class Signal:
@@ -85,11 +89,14 @@ class Signal:
 
 class SignalManager:
     def __init__(self, bus: MessageBusClient = None,
-                 handle_files: bool = True):
+                 handle_files: bool = False):
         self._signal_config = dict(Configuration())
         self._signals: Dict[str, Signal] = dict()
         self.bus = bus or MessageBusClient()
         self._handle_files = handle_files
+        if self._handle_files and not create_signal:
+            LOG.error("Signal files were requested but are no longer supported")
+            self._handle_files = False
         self._register_listeners()
         if not self.bus.started_running:
             self.bus.run_in_thread()
