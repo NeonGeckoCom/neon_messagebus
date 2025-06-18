@@ -10,19 +10,23 @@ ENV XDG_CONFIG_HOME=/config
 
 EXPOSE 8181
 
-RUN apt update && \
-    apt install -y \
+RUN apt-get update && \
+    apt-get install -y \
+    git \
+    jq \
+    curl \
     gcc \
     python3-dev \
     swig \
-    libssl-dev
+    libssl-dev git
 
-ADD . /neon_messagebus
+COPY . /neon_messagebus
 WORKDIR /neon_messagebus
 
-RUN pip install wheel \
-    && pip install .[docker]
+RUN pip install --no-cache-dir wheel \
+    && pip install --no-cache-dir .[docker]
 
 COPY docker_overlay/ /
 
-CMD ["neon-messagebus", "run"]
+HEALTHCHECK CMD "/opt/neon/healthcheck.sh"
+CMD ["neon-messagebus", "run", "--hp", "8000"]

@@ -30,7 +30,11 @@ from ovos_utils import wait_for_exit_signal
 from ovos_utils.log import LOG
 from ovos_utils.process_utils import reset_sigint_handler, PIDLock as Lock
 from neon_utils.log_utils import init_log
-from neon_utils.process_utils import start_malloc, snapshot_malloc, print_malloc
+from neon_utils.process_utils import (
+    start_malloc,
+    snapshot_malloc,
+    print_malloc,
+)
 from ovos_config.config import Configuration
 from neon_messagebus.service import NeonBusService
 
@@ -41,12 +45,17 @@ def main(**kwargs):
     # Create PID file, prevent multiple instances of this service
     lock = Lock("bus")
     config = Configuration()
-    debug = Configuration().get('debug', False)
+    debug = Configuration().get("debug", False)
     malloc_running = start_malloc(config, stack_depth=4)
     kwargs.setdefault("debug", debug)
     kwargs.setdefault("config", config)
 
+    health_check_port = kwargs.pop("health_check_server_port", None)
     service = NeonBusService(daemonic=True, **kwargs)
+    if health_check_port is not None:
+        from neon_utils.process_utils import start_health_check_server
+        start_health_check_server(service.status, health_check_port)
+
     service.start()
     LOG.debug("Waiting for exit signal")
     wait_for_exit_signal()
@@ -63,8 +72,11 @@ def main(**kwargs):
 
 def deprecated_entrypoint():
     from ovos_utils.log import log_deprecation
-    log_deprecation("Use `neon-messagebus run` in place of "
-                    "`neon_messagebus_service`", "2.0.0")
+
+    log_deprecation(
+        "Use `neon-messagebus run` in place of `neon_messagebus_service`",
+        "2.0.0",
+    )
     main()
 
 
