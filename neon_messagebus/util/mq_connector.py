@@ -26,11 +26,12 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE,  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from typing import Optional
 from ovos_config.config import Configuration
 from ovos_utils.log import LOG
 
 
-def start_mq_connector(config: dict):
+def start_mq_connector(config: dict, error_callback: Optional[callable] = None):
     """
     Start the MQ Connector module to handle MQ API requests
     @param config: Configuration object
@@ -42,6 +43,7 @@ def start_mq_connector(config: dict):
         LOG.info("Skipping MQ Connector init")
         return None
     chat_connector = ChatAPIProxy(service_name="neon_chat_api",
-                                  config=config)
+                                  config=config,
+                                  error_callback=error_callback)
     chat_connector.run(run_sync=False)
     return chat_connector
