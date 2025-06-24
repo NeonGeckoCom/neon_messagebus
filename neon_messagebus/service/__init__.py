@@ -98,6 +98,17 @@ class NeonBusService(Thread):
     def started(self) -> Event:
         return self._running
 
+    def check_health(self) -> bool:
+        """
+        Perform additional health checks for the service. If an MQ connection
+        is established, call its health check method.
+
+        @return: True if the service is healthy, False otherwise
+        """
+        if self._mq_connector is not None:
+            return self._mq_connector.check_health()
+        return True
+
     def run(self):
         self.status.set_started()
         self._stopping.clear()

@@ -54,7 +54,8 @@ def main(**kwargs):
     service = NeonBusService(daemonic=True, **kwargs)
     if health_check_port is not None:
         from neon_utils.process_utils import start_health_check_server
-        start_health_check_server(service.status, health_check_port)
+        start_health_check_server(service.status, health_check_port,
+                                  service.check_health)
 
     service.start()
     LOG.debug("Waiting for exit signal")
