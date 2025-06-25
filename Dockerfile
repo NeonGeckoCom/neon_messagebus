@@ -12,13 +12,12 @@ EXPOSE 8181
 
 RUN apt-get update && \
     apt-get install -y \
-    git \
     jq \
     curl \
     gcc \
     python3-dev \
     swig \
-    libssl-dev git
+    libssl-dev
 
 COPY . /neon_messagebus
 WORKDIR /neon_messagebus

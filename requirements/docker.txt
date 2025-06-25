@@ -1,3 +1,2 @@
 neon-mana-utils~=0.3
-#neon-utils[sentry]~=1.12
-# TODO: Uncomment above when neon-utils is not installed from git
+neon-utils[sentry]~=1.12
