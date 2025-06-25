@@ -55,7 +55,7 @@ def on_stopping():
 
 
 def on_error(e='Unknown'):
-    LOG.error('Messagebus service failed to launch ({}).'.format(repr(e)))
+    LOG.error(f'Messagebus service error: {e}')
 
 
 def on_alive():
@@ -97,6 +97,17 @@ class NeonBusService(Thread):
     @property
     def started(self) -> Event:
         return self._running
+
+    def check_health(self) -> bool:
+        """
+        Perform additional health checks for the service. If an MQ connection
+        is established, call its health check method.
+
+        @return: True if the service is healthy, False otherwise
+        """
+        if self._mq_connector is not None:
+            return self._mq_connector.check_health()
+        return True
 
     def run(self):
         self.status.set_started()
@@ -149,8 +160,12 @@ class NeonBusService(Thread):
         if not self.config.get("MQ"):
             LOG.info("No MQ Configuration")
             return
+        def _on_error(thread, exception: Exception):
+            LOG.error(f"MQ Connector thread {thread.name} failed with "
+                      f"exception: {exception}")
+            self.status.set_error(exception)
         try:
-            self._mq_connector = start_mq_connector(self.config)
+            self._mq_connector = start_mq_connector(self.config, _on_error)
             if self._mq_connector:
                 LOG.info(f"MQ Connection Established to "
                          f"{self._mq_connector.config.get('server')}:"

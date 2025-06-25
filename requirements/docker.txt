@@ -1,2 +1,2 @@
-neon-mana-utils~=0.2
-neon-utils[sentry]~=1.12
+neon-mana-utils~=0.3
+neon-utils[sentry]~=1.12,>=1.12.2a2
