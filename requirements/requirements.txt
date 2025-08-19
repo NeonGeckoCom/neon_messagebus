@@ -8,3 +8,4 @@ tornado~=6.0,>=6.0.3
 neon-utils[network]~=1.13
 click~=8.0
 click-default-group~=1.2
+setuptools  # Patching dependency missing in `neon-utils`
